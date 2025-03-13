@@ -1,0 +1,264 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500&display=swap');
+
+
+.custom-table th {
+  background-color: white;
+  color: rgb(138, 139, 137);
+  text-align: left;
+  font-family: "Poppins", sans-serif;
+  padding:10px;
+  margin:10px;
+  justify-content: left;
+  width: auto;
+  font-weight: 400;
+  font-size: 10px;
+  border-right: none;
+  border-left: none;
+  cursor: pointer;
+  user-select: none;
+}
+
+.custom-table th.active-header {
+  background-color:    #e6e5e5;  
+  transition: background-color 0.3s ease;
+}
+
+input[type=number] {
+  appearance: textfield;
+}
+.search-icon:hover {
+  background-color: #636464;
+  color: white;
+  cursor: pointer;
+
+}
+
+.disable-weekends::-webkit-datetime-edit {
+  color: #333;
+}
+
+.disable-weekends:invalid {
+  border: 1px solid red;
+}
+
+.stock-table-container {
+  max-width: 100%;
+  background-color: white;
+  width: 100%; /* Prevent overflow */
+  overflow-x: auto;
+    flex-grow: 1; /* Allows full width in flex */
+}
+body, .belowNav {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.custom-table {
+  font-size: 20px; /* Making text smaller */
+  white-space: nowrap; /* Prevent shrinking of field names */
+  
+}
+
+.profit-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.profit-title {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  font-family: "Poppins", sans-serif;
+}
+
+.profit-title .label {
+  font-size: 12px;
+  font-weight: 400;
+  color: #989696; /* lighter like in image */
+  margin: 0;
+}
+
+.decimal {
+  font-size: 16px;
+  position: relative;
+}
+.profit-title .amount {
+  font-size: 25px;
+  font-weight: 400;
+  margin: 0;
+  color: #000;
+}
+
+.amount.positive {
+  color: #46bf62; /* Bootstrap success green */
+}
+
+.amount.negative {
+  color: #d84251; /* Bootstrap danger red */
+}
+
+
+.download-buttons {
+  display: flex;
+  gap: 20px;
+}
+
+.down_butt {
+  border: none;
+  font-size: 12px;
+  background-color: white;
+  color: #566ebd;
+  cursor: pointer;
+}
+
+.custom-table td {
+  margin:0px 0px  12px 12px;
+  text-align: center;
+  vertical-align: middle;
+  border-right: none;
+  border-left: none;
+}
+.custom-table th:hover{
+background-color:    #e6e5e5;
+
+}
+.header-cell {
+  display: flex;
+  align-items: center;
+}
+
+.sort-icon {
+  font-size: 10px;
+  color: rgb(187, 187, 187);
+  justify-content: right;
+  margin-left: 12px;
+
+
+}
+
+
+.nav-tabs {
+  display: flex;
+  justify-content: start;
+  font-family: "Poppins", sans-serif;
+  font-size: 20px; 
+  font-weight: 400;
+  gap: 3px;
+}
+
+.nav-tabs .nav-link {
+  padding: 8px 16px;
+  color: #555; /* Default color for inactive tabs */
+}
+
+.nav-tabs .nav-link.active {
+  color: rgb(174, 63, 87);/* Ensure only active tab is black */
+  font-weight: bold;
+  background-color: white; /* Optional: Highlight active tab */
+  border-bottom: 2px solid rgb(174, 63, 87);
+}
+
+.nav-tabs .nav-link:hover {
+  background-color: white; /* Light background on hover */
+  color: rgb(140, 58, 73);
+  border-bottom: 2px solid rgb(174, 63, 87);
+
+}
+
+
+
+
+.input-group,
+.form-control {
+  font-size: 12px; /* Smaller text in inputs */
+  padding: 10px;
+  font-weight:500;
+  font-family: "Poppins", sans-serif;
+  width: 100%;
+}
+
+
+.spinner-border {
+  display: inline-block;
+  color: #0b0f13;
+  width: 1rem;
+  height: 1rem;
+  vertical-align: middle;
+  border-width: 2px;
+}
+
+.remove-btn {
+  font-size: 20px;
+    background-color: white;
+    color: rgb(238, 70, 70);
+    margin: none;
+    border: none;
+}
+
+
+/* Add More Button */
+.add-more-btn {
+  background-color: #566ebd;
+  color: white;
+  border: none;
+  margin: 2px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.nav-tabs {
+  font-size: 12px;
+}
+
+button:hover {
+  transform: scale(1.05);
+  background-color: #303131;
+}
+
+
+.calculate-btn {
+  background-color: #3fc560;
+  color: white;
+  margin-left: auto;
+  font-size: 12px;
+  display: inline;
+  border: none;
+  padding: 2px 12px;
+}
+/* Profit/Loss Highlight */
+.profit-loss {
+  text-align: center;
+  border-radius: 5px;
+  padding: 5px;
+}
+
+.profit {
+  background-color: #d4edda;
+  color: #58bc70;
+}
+
+.loss {
+  background-color: #f8d7da;
+  color: #cc4f5c;
+}
+
+.d-flex.justify-content-between {
+  flex-wrap: wrap;
+}
+
+
+.d-flex .btn {
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+@media (max-width: 768px) {
+  .custom-table {
+    font-size: 10px;
+  }
+}
+
+

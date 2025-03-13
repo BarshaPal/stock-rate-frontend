@@ -1,0 +1,39 @@
+.chart-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.charts-container {
+  display: flex;
+  justify-content: space-between; /* Space between pie and line chart */
+  align-items: center;
+  flex-wrap: wrap; /* Ensures responsiveness */
+  gap: 20px; /* Adds spacing between charts */
+}
+
+
+.chart-card {
+  flex: 1; /* Ensures equal width for both charts */
+  min-width: 300px; /* Prevents shrinking too much */
+  max-width: 48%; /* Limits each chart to take half of the container */
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 10px;
+}
+
+/* Responsive Design: Stack charts on smaller screens */
+@media (max-width: 768px) {
+  .charts-container {
+    flex-direction: column; /* Stacks charts vertically */
+    align-items: center;
+  }
+
+  .chart-card {
+    max-width: 100%; /* Full width for smaller screens */
+  }
+
+  
+}
