@@ -3,6 +3,7 @@ import ApexChartComponent from "./ApexChartComponent";
 import "./Company.css";
 import Converter from "./Converter";
 import StockTable from "./StockTable";
+import Pagination from "./Pagination";
 import CompanySelector from "./CompanySelector"; 
 import ExchangeChartContainer from "./ExchangeChartContainer";
 
@@ -55,6 +56,22 @@ const Company = ({
 }) => {
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [stockData, setStockData] = useState([]);
+const [currentPage, setCurrentPage] = useState(1);
+const rowsPerPage = 2;
+
+const totalPages = Math.ceil(stockData.length / rowsPerPage);
+
+const paginatedRows = stockData.slice(
+  (currentPage - 1) * rowsPerPage,
+  currentPage * rowsPerPage
+);
+
+
+
+const handlePageChange = (newPage) => {
+  setCurrentPage(newPage);
+};
+
 
   const handleChange = (event) => {
     const company = companies.find((c) => c.symbol === event.target.value);
@@ -98,15 +115,29 @@ const Company = ({
   </div>
 
               </div>
+
+
     
             <div className='stock_table'>
-              <StockTable 
-               selectedCompany={selectedCompany}
-                sourceCurrency={sourceCurrency} 
-                targetCurrency={targetCurrency} 
-                rows={stockData} 
-                setRows={setStockData} 
-              />
+              
+            <StockTable 
+  selectedCompany={selectedCompany}
+  sourceCurrency={sourceCurrency} 
+  targetCurrency={targetCurrency} 
+  rows={stockData}
+  setRows={setStockData}
+  currentPage={currentPage}
+  setCurrentPage={setCurrentPage}
+  totalRows={stockData.length}
+  rowsPerPage={rowsPerPage}
+  paginatedRows={paginatedRows}
+/>
+
+<Pagination 
+  currentPage={currentPage}
+  totalPages={totalPages}
+  onPageChange={handlePageChange}
+/>
             </div>
           </div>
         )}

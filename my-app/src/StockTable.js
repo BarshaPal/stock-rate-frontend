@@ -9,11 +9,26 @@ import "./StockTable.css";
 import StockCharts from "./StockCharts";
 import ApexChartComponent from "./ApexChartComponent";
 
-const StockTable  = ({ selectedCompany,sourceCurrency, targetCurrency,rows=[],setRows}) =>{
-  const [activeTab, setActiveTab] = useState("table");
-  const [sortOrder, setSortOrder] = useState("asc"); 
-  const [totalProfit, setTotalProfit] = useState(null);
-  const [sortField, setSortField] = useState("");
+
+
+
+
+
+const StockTable  = ({ selectedCompany,
+  sourceCurrency,
+  targetCurrency,
+  rows,
+  setRows,
+  currentPage,
+  setCurrentPage,
+  totalRows,
+  rowsPerPage,
+  paginatedRows}) =>{
+    const [activeTab, setActiveTab] = useState("table");
+    const [sortOrder, setSortOrder] = useState("asc");
+    const [totalProfit, setTotalProfit] = useState(null);
+    const [sortField, setSortField] = useState("");
+  
   const recalculateProfit = (rowsData) => {
     const profitSum = rowsData.reduce((acc, row) => acc + (Number(row.profitLoss) || 0), 0);
     setTotalProfit(profitSum);
@@ -86,8 +101,11 @@ const StockTable  = ({ selectedCompany,sourceCurrency, targetCurrency,rows=[],se
     };
   
     const updatedRows = [...rows, newRow];
-    setRows(updatedRows);
-    recalculateProfit(updatedRows);
+    const newTotalPages = Math.ceil(updatedRows.length / rowsPerPage);
+      
+      setCurrentPage(newTotalPages); 
+      setRows(updatedRows);
+      recalculateProfit(updatedRows);
 
   };
 
@@ -117,22 +135,28 @@ const StockTable  = ({ selectedCompany,sourceCurrency, targetCurrency,rows=[],se
         alert("Weekends are not allowed. Please select a weekday.");
         return; // Prevent setting the value
     }
+    const globalIndex = (currentPage - 1) * rowsPerPage + index; // ✅ Fix index
 
     const updatedRows = [...rows];
-    updatedRows[index][field] = value;
+    if (!updatedRows[globalIndex]) {
+      console.error("Invalid row index:", globalIndex);
+      return;
+  }
+
+    updatedRows[globalIndex][field] = value;
     
 
     // Validate input
-    const errors = validateRow(updatedRows[index]);
-    updatedRows[index].errors = errors;
+    const errors = validateRow(updatedRows[globalIndex]);
+    updatedRows[globalIndex].errors = errors;
 
     if (errors.sellingDate) {
-        updatedRows[index].loading_pr = false; // Hide loading if validation fails
-        updatedRows[index].loading_sr=false;
+        updatedRows[globalIndex].loading_pr = false; // Hide loading if validation fails
+        updatedRows[globalIndex].loading_sr=false;
         setRows([...updatedRows]);
         return;
     }
-    field==="purchaseDate"? updatedRows[index].loading_pr = true:updatedRows[index].loading_sr = true
+    field==="purchaseDate"? updatedRows[globalIndex].loading_pr = true:updatedRows[globalIndex].loading_sr = true
 
     setRows([...updatedRows]); // Update state to show the spinner
    
@@ -152,30 +176,31 @@ const StockTable  = ({ selectedCompany,sourceCurrency, targetCurrency,rows=[],se
         }
         if (stockRate.open !== null) {
          
-            if (field === "purchaseDate") {
-              
-                updatedRows[index].purchaseRate = stockRate.open * updatedRows[index].sellingQuantity*exchangeRateres.exchangeRate_table;
-                updatedRows[index].purchaseRate_str = stockRate.open * exchangeRateres.exchangeRate_source;
-                updatedRows[index].originalPurchasePrice = stockRate.open*exchangeRateres.exchangeRate_table;
-            } else {
-                if (updatedRows[index].purchaseRate) {
-                    updatedRows[index].sellingPrice = stockRate.open * updatedRows[index].sellingQuantity*exchangeRateres.exchangeRate_table;
-                    updatedRows[index].sellingPrice_str = stockRate.open * exchangeRateres.exchangeRate_source;
-                    updatedRows[index].originalSellingPrice = stockRate.open*exchangeRateres.exchangeRate_table;
-                }
+           if (field === "purchaseDate") {
+    updatedRows[globalIndex].purchaseRate = parseFloat((stockRate.open * updatedRows[globalIndex].sellingQuantity * exchangeRateres.exchangeRate_table).toFixed(2));
+    updatedRows[globalIndex].purchaseRate_str = parseFloat((stockRate.open * exchangeRateres.exchangeRate_table * exchangeRateres.exchangeRate_source).toFixed(2));
+    updatedRows[globalIndex].originalPurchasePrice = parseFloat((stockRate.open * exchangeRateres.exchangeRate_table).toFixed(2));
+} else {
+    if (updatedRows[globalIndex].purchaseRate) {
+        updatedRows[globalIndex].sellingPrice = parseFloat((stockRate.open * updatedRows[globalIndex].sellingQuantity * exchangeRateres.exchangeRate_table).toFixed(2));
+        updatedRows[globalIndex].sellingPrice_str = parseFloat((stockRate.open * exchangeRateres.exchangeRate_table * exchangeRateres.exchangeRate_source).toFixed(2));
+        updatedRows[globalIndex].originalSellingPrice = parseFloat((stockRate.open * exchangeRateres.exchangeRate_table).toFixed(2));
+    }
+
+
             }
         }
     }
 
-    if (updatedRows[index].purchaseRate && updatedRows[index].sellingPrice && updatedRows[index].sellingQuantity) {
-        updatedRows[index].profitLoss = calculateProfitLoss(
-            updatedRows[index].sellingPrice_str * updatedRows[index].sellingQuantity,
-            updatedRows[index].purchaseRate_str * updatedRows[index].sellingQuantity
+    if (updatedRows[globalIndex].purchaseRate && updatedRows[globalIndex].sellingPrice && updatedRows[globalIndex].sellingQuantity) {
+        updatedRows[globalIndex].profitLoss = calculateProfitLoss(
+            updatedRows[globalIndex].sellingPrice_str * updatedRows[globalIndex].sellingQuantity,
+            updatedRows[globalIndex].purchaseRate_str * updatedRows[globalIndex].sellingQuantity
         );
     }
 
-    updatedRows[index].loading_pr = false; // Hide loading after data is fetched
-    updatedRows[index].loading_sr=false;
+    updatedRows[globalIndex].loading_pr = false; // Hide loading after data is fetched
+    updatedRows[globalIndex].loading_sr=false;
 
     setRows([...updatedRows]);
 };
@@ -185,6 +210,26 @@ const StockTable  = ({ selectedCompany,sourceCurrency, targetCurrency,rows=[],se
 
     return formatAmount(sellingPrice - purchasePrice) ;
   };
+
+  const updateSellingPriceAndRecalculate = (rows, index, newSellingPrice, setRows) => {
+    const updatedRows = [...rows];
+    updatedRows[index].sellingPrice_str = newSellingPrice;
+  
+    const quantity = parseFloat(updatedRows[index].sellingQuantity) || 0;
+    const selling = parseFloat(newSellingPrice) || 0;
+    const purchase = parseFloat(updatedRows[index].purchaseRate_str) || 0;
+  
+    updatedRows[index].profitLoss = calculateProfitLoss(
+      selling * quantity,
+      purchase * quantity
+    );
+  
+    setRows(updatedRows);
+    recalculateProfit(updatedRows);
+
+  };
+  
+
 
   const handleQuantityChange = (index, value) => {
     const updatedRows = [...rows];
@@ -328,173 +373,206 @@ const StockTable  = ({ selectedCompany,sourceCurrency, targetCurrency,rows=[],se
   return (
     <div className="stock-table-container">
       {/* Tabs */}
-      <ul className="nav nav-tabs ">
+      <ul className="nav nav-tabs">
         <li className="nav-item">
-          <button className={`nav-link ${activeTab === "table" ? "active" : ""}`} onClick={() => handleTabChange("table")}>Table View</button>
+          <button
+            className={`nav-link ${activeTab === "table" ? "active" : ""}`}
+            onClick={() => handleTabChange("table")}
+          >
+            Table View
+          </button>
         </li>
         <li className="nav-item">
-          <button className={`nav-link ${activeTab === "graph" ? "active" : ""}`} onClick={() => handleTabChange("graph")}>Graph View</button>
+          <button
+            className={`nav-link ${activeTab === "graph" ? "active" : ""}`}
+            onClick={() => handleTabChange("graph")}
+          >
+            Graph View
+          </button>
         </li>
-        
-                <Button className="calculate-btn me-1 mb-1 p-2" >Calculate Profitable Income</Button>
-
+  
+        <Button className="calculate-btn me-1 mb-1 p-2">
+          Calculate Profitable Income
+        </Button>
       </ul>
-      
-
-      {/* Search & Filters */}
+  
       {/* Conditional Rendering */}
       {activeTab === "table" ? (
-        <div></div> ) : (
-          <div>
-            <br/>
-            <StockCharts stockData={rows} />      
-                </div>
-           // Use your existing graph component here
-      )}
-      <div className="belowNav">
-      <div className="d-flex justify-content-between align-items-center p-3">
-
-         
-      
-
-      <div class="profit-container">
-        <div class="profit-title"> 
-        <p class="label">Total P&L</p>
-
-        
-        <h2 className={`amount ${totalProfit < 0 ? 'negative' : 'positive'}`}>
-  {   Math.abs(formatAmount(totalProfit).split('.')[0] || 0)  }
-  <span className="decimal">.{formatAmount(totalProfit).split('.')[1]}</span>
-</h2>
-
+        <div></div>
+      ) : (
+        <div>
+          <br />
+          <StockCharts stockData={rows} />
         </div>
-   
-       <div class="download-buttons">
-        <button class="down_butt">Download CSV</button>
-        <button class="down_butt">Upload PDF</button>
-         </div>
-      </div>
-
-      </div>
-
-    
-
-      <Table bordered className="custom-table">
-        <thead>
-          <tr>
-            {rows.length > 1 && <th></th>}
-            <th onClick={() => sortByDate("purchaseDate")}
-              className={(sortField === "purchaseDate" ? "active-header" : "")}>
-               <div className="header-cell">
-    <span>
-      Purchase Date 
-    </span>
-    {sortField === "purchaseDate" && (
-      <span className="sort-icon">{sortOrder === "asc" ? "▲" : "▼"}</span>
-    )}
-  </div></th>
-            <th onClick={() => sortByField("purchaseRate")} className={(sortField === "purchaseRate" ? "active-header" : "")}>
-            <div className="header-cell">
-    <span>Purchase Price ({sourceCurrency})</span>
-    {sortField === "purchaseRate" && (
-      <span className="sort-icon">{sortOrder === "asc" ? "▲" : "▼"}</span>
-    )}
-  </div></th>
-            <th onClick={() => sortByDate("sellingDate")} className={(sortField === "sellingDate" ? "active-header" : "")}>
-               <div className="header-cell">
-    <span>
-      Selling Date 
-    </span>
-    {sortField === "sellingDate" && (
-      <span className="sort-icon">{sortOrder === "asc" ? "▲" : "▼"}</span>
-    )}
-  </div></th>
-            <th>Selling Quantity</th>
-            <th>Selling Price</th>
-            <th>P&L ({targetCurrency})</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row, index) => (
-            <tr key={index}>
-              {rows.length > 1 && (
+      )}
+  
+      <div className="belowNav">
+        <div className="d-flex justify-content-between align-items-center p-3">
+          <div className="profit-container">
+            <div className="profit-title">
+              <p className="label">Total P&L</p>
+              <h2 className={`amount ${totalProfit < 0 ? "negative" : "positive"}`}>
+                {Math.abs(formatAmount(totalProfit).split(".")[0] || 0)}
+                <span className="decimal">.{formatAmount(totalProfit).split(".")[1]}</span>
+              </h2>
+            </div>
+  
+            <div className="download-buttons">
+              <button className="down_butt">Download CSV</button>
+              <button className="down_butt">Upload PDF</button>
+            </div>
+          </div>
+        </div>
+  
+        <Table bordered className="custom-table">
+          <thead>
+            <tr>
+              {rows.length > 1 && <th></th>}
+              <th
+                onClick={() => sortByDate("purchaseDate")}
+                className={sortField === "purchaseDate" ? "active-header" : ""}
+              >
+                <div className="header-cell">
+                  <span>Purchase Date</span>
+                  {sortField === "purchaseDate" && (
+                    <span className="sort-icon">{sortOrder === "asc" ? "▲" : "▼"}</span>
+                  )}
+                </div>
+              </th>
+              <th
+                onClick={() => sortByField("purchaseRate")}
+                className={sortField === "purchaseRate" ? "active-header" : ""}
+              >
+                <div className="header-cell">
+                  <span>Purchase Price ({sourceCurrency})</span>
+                  {sortField === "purchaseRate" && (
+                    <span className="sort-icon">{sortOrder === "asc" ? "▲" : "▼"}</span>
+                  )}
+                </div>
+              </th>
+              <th
+                onClick={() => sortByDate("sellingDate")}
+                className={sortField === "sellingDate" ? "active-header" : ""}
+              >
+                <div className="header-cell">
+                  <span>Selling Date</span>
+                  {sortField === "sellingDate" && (
+                    <span className="sort-icon">{sortOrder === "asc" ? "▲" : "▼"}</span>
+                  )}
+                </div>
+              </th>
+              <th>Selling Quantity</th>
+              <th>Selling Price ({targetCurrency})</th>
+              <th>P&L ({targetCurrency})</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              
+            paginatedRows.map((row, index) => (
+              <tr key={index}>
+                {rows.length > 1 && (
+                  <td>
+                    <Button className="remove-btn" onClick={() => removeRow(index)}>
+                      ×
+                    </Button>
+                  </td>
+                )}
+  
                 <td>
-                  <Button className="remove-btn" onClick={() =>removeRow(index)}>×</Button>
+                  <Input
+                    type="date"
+                    value={row.purchaseDate}
+                    onChange={(e) => handleInputChange(index, "purchaseDate", e.target.value)}
+                    className="disable-weekends"
+                    invalid={!!row.errors.purchaseDate}
+                  />
+                  {row.errors.purchaseDate && (
+                    <FormFeedback>{row.errors.purchaseDate}</FormFeedback>
+                  )}
                 </td>
-              )}
-             
-
-<td>
+  
+                <td>
+                  {row.loading_pr ? (
+                    <span className="spinner-border spinner-border-sm text-primary"></span>
+                  ) : (
+                    <Input type="number" value={row.purchaseRate} placeholder="Auto-filled" disabled />
+                  )}
+                </td>
+  
+                <td>
+                  <Input
+                    type="date"
+                    value={row.sellingDate}
+                    onChange={(e) => handleInputChange(index, "sellingDate", e.target.value)}
+                    min={row.purchaseDate}
+                    invalid={!!row.errors.sellingDate}
+                  />
+                  {row.errors.sellingDate && (
+                    <FormFeedback>{row.errors.sellingDate}</FormFeedback>
+                  )}
+                </td>
+  
+                <td>
+                  <Input
+                    type="number"
+                    value={row.sellingQuantity}
+                    onChange={(e) => handleQuantityChange(index, e.target.value)}
+                    placeholder="Enter quantity"
+                    invalid={!!row.errors.sellingQuantity}
+                  />
+                  {row.errors.sellingQuantity && (
+                    <FormFeedback>{row.errors.sellingQuantity}</FormFeedback>
+                  )}
+                </td>
+  
+                <td>
+  {row.loading_sr ? (
+    <span className="spinner-border spinner-border-sm text-primary"></span>
+  ) : (
 
     <Input
-    type="date"
-    value={row.purchaseDate}
-    onChange={(e) => handleInputChange(index, "purchaseDate", e.target.value)}
-    className="disable-weekends"
-    invalid={!!row.errors.purchaseDate}
-
-  />
+  type="number"
+  value={row.sellingPrice_str}
+  onChange={(e) =>
+    updateSellingPriceAndRecalculate(rows, index, e.target.value, setRows)
+  }
+/>
 
   
-  {row.errors.purchaseDate && <FormFeedback>{row.errors.purchaseDate}</FormFeedback>}
+  )}
 </td>
 
-              <td>
-              {row.loading_pr ? (  <span className="spinner-border spinner-border-sm text-primary"></span> ) : (<Input type="number" value={row.purchaseRate} placeholder="Auto-filled" disabled />)}
+  
+                <td>
+                  <Input
+                    type="number"
+                    value={row.profitLoss < 0 ? Math.abs(row.profitLoss) : row.profitLoss}
+                    disabled
+                    placeholder="Auto-filled"
+                    className={getProfitLossClass(row.profitLoss)}
+                  />
                 </td>
-          
-
-<td>
-  <Input
-    type="date"
-    value={row.sellingDate}
-    onChange={(e) => handleInputChange(index, "sellingDate", e.target.value)}
-    min={row.purchaseDate }  // Disable past dates before purchase date
-    invalid={!!row.errors.sellingDate} // Prevent manual typing
-  />
-  {row.errors.sellingDate && <FormFeedback>{row.errors.sellingDate}</FormFeedback>}
-</td>
-
-              <td>
-                <Input
-                  type="number"
-                  value={row.sellingQuantity}
-                  onChange={(e) => handleQuantityChange(index, e.target.value)}
-                  placeholder="Enter quantity"
-                  invalid={!!row.errors.sellingQuantity}
-                />
-                {row.errors.sellingQuantity && <FormFeedback>{row.errors.sellingQuantity}</FormFeedback>}
-              </td>
-              
-              <td>
-              {row.loading_sr ? (<span className="spinner-border spinner-border-sm text-primary"></span>) : (<Input type="number" value={row.sellingPrice} placeholder="Auto-filled"  />)}
-               </td>
-              <td>
-                <Input
-                  type="number"
-                  value={row.profitLoss < 0 ? Math.abs(row.profitLoss) : row.profitLoss} 
-                  disabled
-                  placeholder="Auto-filled"
-                  className={getProfitLossClass(row.profitLoss)}
-                />
-              </td>
-              <td>{index === rows.length - 1 && <Button className="add-more-btn p-2" onClick={addRow}>Add More</Button>}</td>
-            </tr>
-          ))}
-        </tbody>
-       </Table>
-      
+  
+                <td>
+                  {(currentPage === Math.ceil(rows.length / rowsPerPage)) &&
+                  index === paginatedRows.length - 1 && (
+                    <Button className="add-more-btn p-2" onClick={addRow}>
+                      Add More
+                    </Button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
       </div>
-      
-{totalProfit !== null && (
-        // <div className="mt-4 p-4 bg-grey text-white text-center font-bold text-lg">
-          <div className="totalprofit">
-          Total Taxable Profit: {totalProfit}
-        </div>
-      )}
+  
+    
     </div>
   );
+  
 };
 
 export default StockTable;

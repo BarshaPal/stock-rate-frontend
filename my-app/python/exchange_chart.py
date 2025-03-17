@@ -22,6 +22,20 @@ def currency_graph(currency):
         df['date'] = pd.to_datetime(df['date'])
         df.sort_values('date', inplace=True)
 
+        # Calculate dynamic y-axis range
+        min_rate = df['rate'].min()
+        max_rate = df['rate'].max()
+
+        if max_rate == min_rate:
+            # If all values are the same, use small padding
+            y_min = min_rate - 1
+            y_max = max_rate + 1
+        else:
+            # Use tight padding (2%) and cap it
+            padding = (max_rate - min_rate) * 0.02
+            y_min = max(min_rate - padding, min_rate * 0.95)
+            y_max = min(max_rate + padding, max_rate * 1.05)
+
         # Plot with Plotly
         fig = go.Figure()
         fig.add_trace(go.Scatter(
@@ -40,6 +54,7 @@ def currency_graph(currency):
             xaxis=dict(
                 rangeselector=dict(
                     buttons=list([
+                        dict(count=1, label="1D", step="day", stepmode="backward"),
                         dict(count=1, label="1M", step="month", stepmode="backward"),
                         dict(count=6, label="6M", step="month", stepmode="backward"),
                         dict(count=1, label="1Y", step="year", stepmode="backward"),
@@ -49,11 +64,13 @@ def currency_graph(currency):
                 rangeslider=dict(visible=False),
                 type="date"
             ),
-            yaxis=dict(gridcolor='lightgrey'),
+            yaxis=dict(
+                gridcolor='lightgrey',
+                range=[y_min, y_max]
+            ),
         )
 
         # Convert Plotly figure to JSON
-        # fig.show()
         graph_json = pio.to_json(fig)
         return jsonify({"graph": graph_json})
 

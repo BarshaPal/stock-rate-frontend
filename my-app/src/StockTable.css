@@ -1,6 +1,21 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500&display=swap');
 
 
+/* Hide number input spinners (arrows) */
+
+/* Chrome, Safari, Edge, Opera */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type='number'] {
+  -moz-appearance: textfield;
+}
+
+
 .custom-table th {
   background-color: white;
   color: rgb(138, 139, 137);
@@ -95,10 +110,13 @@ body, .belowNav {
 
 .amount.positive {
   color: #46bf62; /* Bootstrap success green */
+  /* background-color: #c1e3c9; */
 }
 
 .amount.negative {
   color: #d84251; /* Bootstrap danger red */
+  /* background-color: #ec9595; */
+
 }
 
 

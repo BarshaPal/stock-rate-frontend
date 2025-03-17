@@ -1,0 +1,70 @@
+/* Pagination Container aligned to right */
+.pagination-container {
+    display: flex;
+    justify-content: flex-end; /* Align to right */
+    margin-top: 20px;
+    padding-right: 20px; /* Optional: add spacing from right edge */
+  }
+  
+  /* Box around pagination buttons */
+  .pagination-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+  }
+  
+  /* Pagination Button */
+  .pagination-btn {
+    padding: 8px 14px;
+    font-size: 14px;
+    background-color: #6775a0;
+    color: white;
+    border: none;
+    margin: 2px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+  
+  .pagination-btn:hover:not(:disabled) {
+    background-color: #3f5394;
+    transform: translateY(-1px); /* Slight lift on hover */
+  }
+  .pagination-input {
+    width: 40px;
+    padding: 4px 6px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    text-align: center;
+    margin-right: 4px;
+    outline: none;
+    transition: border-color 0.3s ease;
+  }
+  
+  .pagination-input:focus {
+    border-color: #007bff;
+  }
+  
+  /* Disabled Button */
+  .pagination-btn:disabled {
+    background: #f1f1f1;
+    cursor: not-allowed;
+    color: #999;
+    opacity: 0.7;
+  }
+  
+  /* Pagination Text */
+  .pagination-text {
+    font-size: 14px;
+    font-weight: bold;
+    color: #555;
+  }
+  
+  /* Current Page Styling */
+  .current-page {
+    color: #007bff;
+    font-size: 16px;
+  }
+  
