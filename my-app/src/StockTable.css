@@ -55,6 +55,12 @@ input[type=number] {
 .disable-weekends:invalid {
   border: 1px solid red;
 }
+ 
+
+.react-datepicker__input-container input {
+  width: 100%;
+  box-sizing: border-box;
+}
 
 .stock-table-container {
   max-width: 100%;
@@ -132,14 +138,13 @@ body, .belowNav {
   color: #566ebd;
   cursor: pointer;
 }
-
 .custom-table td {
-  margin:0px 0px  12px 12px;
-  text-align: center;
-  vertical-align: middle;
-  border-right: none;
-  border-left: none;
+  padding: 5px;           /* Remove any default padding */
+  margin: 0;            /* Though margin doesn't apply to <td> */
+  text-align: center;   
+  border:none;
 }
+
 .custom-table th:hover{
 background-color:    #e6e5e5;
 
@@ -189,12 +194,13 @@ background-color:    #e6e5e5;
 
 
 
-
+.full-width-input,
 .input-group,
 .form-control {
   font-size: 12px; /* Smaller text in inputs */
   padding: 10px;
   font-weight:500;
+  border:none;
   font-family: "Poppins", sans-serif;
   width: 100%;
 }

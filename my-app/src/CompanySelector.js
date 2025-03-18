@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
 import './CompanySelector.css';
 
-const CompanySelector = ({ companies, selectedCompany, handleChange }) => {
+const CompanySelector = ({ companies, selectedCompany, handleChange ,clearStockTable}) => {
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [visibleCount, setVisibleCount] = useState(10);
@@ -33,6 +33,13 @@ const CompanySelector = ({ companies, selectedCompany, handleChange }) => {
     }
     setShowModal(false);
   };
+  
+    const handleConfirmDelete = () => {
+      handleChange({ target: { value: '' } }); 
+      clearStockTable();
+    
+  };
+  
 
   // Filter and sort
   let filteredCompanies = companies.filter((company) =>
@@ -51,6 +58,7 @@ const CompanySelector = ({ companies, selectedCompany, handleChange }) => {
 
   const confirmDelete = () => {
     handleChange({ target: { value: '' } }); // Clear in parent
+      clearStockTable();
     setSelectedCompanyName(''); // Clear locally
     setShowConfirmDelete(false); // Hide prompt
   };
@@ -88,7 +96,7 @@ const CompanySelector = ({ companies, selectedCompany, handleChange }) => {
 
   return (
     <div className={`selector-wrapper ${selectedCompany ? 'shifted' : ''}`}>
-      {!selectedCompany && <h1 className="heading">Currency Converter</h1>}
+      {!selectedCompany }
 
       <div className="dropdown-wrapper">
         <div className="input-wrapper">

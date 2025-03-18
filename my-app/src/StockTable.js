@@ -1,13 +1,12 @@
 import {  Input, FormFeedback } from "reactstrap";
 import React, {useEffect, useState } from "react";
-import { FaSearch } from "react-icons/fa";
+import DatePicker from "react-datepicker";
 import { Table, Button, Form, InputGroup, Dropdown } from "react-bootstrap";
-
-
 import axios from "axios";
 import "./StockTable.css";
 import StockCharts from "./StockCharts";
 import ApexChartComponent from "./ApexChartComponent";
+import "react-datepicker/dist/react-datepicker.css";
 
 
 
@@ -135,7 +134,7 @@ const StockTable  = ({ selectedCompany,
         alert("Weekends are not allowed. Please select a weekday.");
         return; // Prevent setting the value
     }
-    const globalIndex = (currentPage - 1) * rowsPerPage + index; // ✅ Fix index
+    const globalIndex = (currentPage - 1) * rowsPerPage + index;
 
     const updatedRows = [...rows];
     if (!updatedRows[globalIndex]) {
@@ -168,7 +167,7 @@ const StockTable  = ({ selectedCompany,
  
         if(exchangeRateres.exchangeRate_source!==exchangeRateres.exchangeRate_table)
         {
-          exchangeRateres.exchangeRate_table= exchangeRateres.exchangeRate_table / exchangeRateres.exchangeRate_source;
+          exchangeRateres.exchangeRate_table= parseFloat((exchangeRateres.exchangeRate_table / exchangeRateres.exchangeRate_source).toFixed(2));
 
         }
         else{
@@ -177,15 +176,15 @@ const StockTable  = ({ selectedCompany,
         if (stockRate.open !== null) {
          
            if (field === "purchaseDate") {
-    updatedRows[globalIndex].purchaseRate = parseFloat((stockRate.open * updatedRows[globalIndex].sellingQuantity * exchangeRateres.exchangeRate_table).toFixed(2));
-    updatedRows[globalIndex].purchaseRate_str = parseFloat((stockRate.open * exchangeRateres.exchangeRate_table * exchangeRateres.exchangeRate_source).toFixed(2));
+    updatedRows[globalIndex].purchaseRate = parseFloat((stockRate.open *  exchangeRateres.exchangeRate_table).toFixed(2));
+    updatedRows[globalIndex].purchaseRate_str = parseFloat((stockRate.open * exchangeRateres.exchangeRate_table * exchangeRateres.exchangeRate_source).toFixed(2));//SOURCE-TARGET
     updatedRows[globalIndex].originalPurchasePrice = parseFloat((stockRate.open * exchangeRateres.exchangeRate_table).toFixed(2));
-} else {
+    } else {
     if (updatedRows[globalIndex].purchaseRate) {
-        updatedRows[globalIndex].sellingPrice = parseFloat((stockRate.open * updatedRows[globalIndex].sellingQuantity * exchangeRateres.exchangeRate_table).toFixed(2));
-        updatedRows[globalIndex].sellingPrice_str = parseFloat((stockRate.open * exchangeRateres.exchangeRate_table * exchangeRateres.exchangeRate_source).toFixed(2));
+        updatedRows[globalIndex].sellingPrice = parseFloat((stockRate.open * exchangeRateres.exchangeRate_table).toFixed(2));
+        updatedRows[globalIndex].sellingPrice_str = parseFloat((stockRate.open * exchangeRateres.exchangeRate_table * exchangeRateres.exchangeRate_source).toFixed(2));//SOURCE-TARGET
         updatedRows[globalIndex].originalSellingPrice = parseFloat((stockRate.open * exchangeRateres.exchangeRate_table).toFixed(2));
-    }
+      }
 
 
             }
@@ -194,8 +193,8 @@ const StockTable  = ({ selectedCompany,
 
     if (updatedRows[globalIndex].purchaseRate && updatedRows[globalIndex].sellingPrice && updatedRows[globalIndex].sellingQuantity) {
         updatedRows[globalIndex].profitLoss = calculateProfitLoss(
-            updatedRows[globalIndex].sellingPrice_str * updatedRows[globalIndex].sellingQuantity,
-            updatedRows[globalIndex].purchaseRate_str * updatedRows[globalIndex].sellingQuantity
+            updatedRows[globalIndex].sellingPrice_str ,updatedRows[globalIndex].sellingQuantity,
+            updatedRows[globalIndex].purchaseRate_str 
         );
     }
 
@@ -206,22 +205,25 @@ const StockTable  = ({ selectedCompany,
 };
 
 
-  const calculateProfitLoss = (sellingPrice, purchasePrice) => {
+  const calculateProfitLoss = (sellingPrice,quantity, purchasePrice) => {
 
-    return formatAmount(sellingPrice - purchasePrice) ;
+    return formatAmount((sellingPrice - purchasePrice)*quantity);
   };
 
   const updateSellingPriceAndRecalculate = (rows, index, newSellingPrice, setRows) => {
     const updatedRows = [...rows];
-    updatedRows[index].sellingPrice_str = newSellingPrice;
-  
+    const rate=parseFloat((updatedRows[index].sellingPrice_str/updatedRows[index].sellingPrice).toFixed(2));
+
+    updatedRows[index].sellingPrice_str = parseFloat((newSellingPrice*rate).toFixed(2));
+    updatedRows[index].sellingPrice= newSellingPrice;
+
     const quantity = parseFloat(updatedRows[index].sellingQuantity) || 0;
-    const selling = parseFloat(newSellingPrice) || 0;
+    const selling = parseFloat((newSellingPrice) *rate)|| 0;
     const purchase = parseFloat(updatedRows[index].purchaseRate_str) || 0;
   
     updatedRows[index].profitLoss = calculateProfitLoss(
-      selling * quantity,
-      purchase * quantity
+      selling , quantity,
+      purchase 
     );
   
     setRows(updatedRows);
@@ -244,21 +246,21 @@ const StockTable  = ({ selectedCompany,
     return;
   }
 
-    if (!updatedRows[index].originalSellingPrice) {
-      updatedRows[index].originalSellingPrice = updatedRows[index].sellingPrice || 0;
-    }
-    if (!updatedRows[index].originalPurchasePrice) {
-      updatedRows[index].originalSellingPrice = updatedRows[index].purchaseRate || 0;
-    }
+    // if (!updatedRows[index].originalSellingPrice) {
+    //   updatedRows[index].originalSellingPrice = updatedRows[index].sellingPrice || 0;
+    // }
+    // if (!updatedRows[index].originalPurchasePrice) {
+    //   updatedRows[index].originalSellingPrice = updatedRows[index].purchaseRate || 0;
+    // }
 
-    updatedRows[index].sellingPrice = updatedRows[index].originalSellingPrice * value;
-    updatedRows[index].purchaseRate = updatedRows[index].originalPurchasePrice * value;
+    // updatedRows[index].sellingPrice = updatedRows[index].originalSellingPrice * value;
+    // updatedRows[index].purchaseRate = updatedRows[index].originalPurchasePrice * value;
   
 
     if (updatedRows[index].purchaseRate && updatedRows[index].sellingPrice) {
       updatedRows[index].profitLoss = calculateProfitLoss(
-        updatedRows[index].sellingPrice_str*value,
-        updatedRows[index].purchaseRate_str*value,
+        updatedRows[index].sellingPrice_str,value,
+        updatedRows[index].purchaseRate_str
         
       );
     }
@@ -361,7 +363,10 @@ const StockTable  = ({ selectedCompany,
     setSortField(field); // set the field being sorted
 
   };
-  
+  const isWeekday = (date) => {
+    const day = date.getDay();
+    return day !== 0 && day !== 6; // 0 = Sunday, 6 = Saturday
+  };
   const getProfitLossClass = (profitLoss) => {
     if (profitLoss === "") return "profit-loss grey"; 
     return profitLoss < 0 ? "profit-loss loss" : "profit-loss profit";
@@ -462,7 +467,7 @@ const StockTable  = ({ selectedCompany,
                 </div>
               </th>
               <th>Selling Quantity</th>
-              <th>Selling Price ({targetCurrency})</th>
+              <th>Selling Price ({sourceCurrency})</th>
               <th>P&L ({targetCurrency})</th>
               <th></th>
             </tr>
@@ -479,19 +484,24 @@ const StockTable  = ({ selectedCompany,
                     </Button>
                   </td>
                 )}
-  
-                <td>
-                  <Input
-                    type="date"
-                    value={row.purchaseDate}
-                    onChange={(e) => handleInputChange(index, "purchaseDate", e.target.value)}
-                    className="disable-weekends"
-                    invalid={!!row.errors.purchaseDate}
-                  />
-                  {row.errors.purchaseDate && (
+  <td>
+  <DatePicker
+    className="full-width-input"
+    selected={row.purchaseDate ? new Date(row.purchaseDate) : null}
+    onChange={(date) => {
+      const formattedDate = date?.toISOString().split("T")[0]; 
+      handleInputChange(index, "purchaseDate", formattedDate);
+    }}
+    filterDate={(date) => date.getDay() !== 0 && date.getDay() !== 6} // Disable Sundays (0) and Saturdays (6)
+    dateFormat="yyyy-MM-dd"
+    className={`form-control ${row.errors.purchaseDate ? "is-invalid" : ""}`}
+    placeholderText="Select date"
+  />
+ {row.errors.purchaseDate && (
                     <FormFeedback>{row.errors.purchaseDate}</FormFeedback>
                   )}
-                </td>
+</td>
+              
   
                 <td>
                   {row.loading_pr ? (
@@ -502,17 +512,24 @@ const StockTable  = ({ selectedCompany,
                 </td>
   
                 <td>
-                  <Input
-                    type="date"
-                    value={row.sellingDate}
-                    onChange={(e) => handleInputChange(index, "sellingDate", e.target.value)}
-                    min={row.purchaseDate}
-                    invalid={!!row.errors.sellingDate}
-                  />
-                  {row.errors.sellingDate && (
-                    <FormFeedback>{row.errors.sellingDate}</FormFeedback>
-                  )}
-                </td>
+  <DatePicker
+  
+    selected={row.sellingDate ? new Date(row.sellingDate) : null}
+    onChange={(date) => {
+      const formattedDate = date?.toISOString().split("T")[0]; // "yyyy-MM-dd"
+      handleInputChange(index, "sellingDate", formattedDate);
+    }}
+    minDate={row.purchaseDate ? new Date(row.purchaseDate) : null}
+    filterDate={(date) => date.getDay() !== 0 && date.getDay() !== 6} // Disable Sundays (0) and Saturdays (6)
+    dateFormat="yyyy-MM-dd"
+    className={`form-control ${row.errors.sellingDate ? "is-invalid" : ""}`}
+    placeholderText="Select date"
+  />
+  {row.errors.sellingDate && (
+    <div className="invalid-feedback">{row.errors.sellingDate}</div>
+  )}
+</td>
+
   
                 <td>
                   <Input
@@ -534,7 +551,7 @@ const StockTable  = ({ selectedCompany,
 
     <Input
   type="number"
-  value={row.sellingPrice_str}
+  value={row.sellingPrice}
   onChange={(e) =>
     updateSellingPriceAndRecalculate(rows, index, e.target.value, setRows)
   }
@@ -551,7 +568,7 @@ const StockTable  = ({ selectedCompany,
                     value={row.profitLoss < 0 ? Math.abs(row.profitLoss) : row.profitLoss}
                     disabled
                     placeholder="Auto-filled"
-                    className={getProfitLossClass(row.profitLoss)}
+                    className={`form-control${getProfitLossClass(row.profitLoss)}`}
                   />
                 </td>
   

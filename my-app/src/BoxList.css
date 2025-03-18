@@ -1,13 +1,13 @@
 .dashboard-container {
   
-  background-color: #d9dbde;
+  background-color: white;
 }
 
 .stock_table{
 margin-top: 0px;
 }
 body {
-  background-color: #d9dbde;
+  background-color: white;
   height: 100vh;
   width: 100%;
 }
@@ -24,12 +24,13 @@ body {
 }
 .converter-section
 {
-  margin-left: 5px;
-  margin-top: 5px;
+  
   width: 100%;
+  height: 100vh;
+  max-height: 100vh;
   max-width: 100vw;
   border-radius: 0px; /* Slightly rounded corners */
- align-self: flex-start;
+  align-items: center;
 }
 
 .charts-section{

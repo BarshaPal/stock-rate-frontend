@@ -88,7 +88,11 @@ const handlePageChange = (newPage) => {
           <CompanySelector 
           selectedCompany={selectedCompany} 
           handleChange={handleChange} 
-          companies={companies} 
+          companies={companies}
+          clearStockTable={() => {
+            setStockData([]);
+            setCurrentPage(1); 
+          }} 
          />
     
           {/* </div> */}
