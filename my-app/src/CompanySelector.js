@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
 import './CompanySelector.css';
 
-const CompanySelector = ({ companies, selectedCompany, handleChange ,clearStockTable}) => {
+const CompanySelector = ({ companies, selectedCompany, handleChange ,clearStockTable,tableData}) => {
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [visibleCount, setVisibleCount] = useState(10);
@@ -80,6 +80,25 @@ const CompanySelector = ({ companies, selectedCompany, handleChange ,clearStockT
       }
     }
   };
+  const downloadCSV = () => {
+    if (!tableData || tableData.length === 0) return;
+  
+    const headers = Object.keys(tableData[0]);
+    const csvRows = [
+      headers.join(','),
+      ...tableData.map(row =>
+        headers.map(field => `"${(row[field] ?? '').toString().replace(/"/g, '""')}"`).join(',')
+      )
+    ];
+    const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'stock_data.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+  
 
   useEffect(() => {
     const container = modalContentRef.current;
@@ -190,6 +209,18 @@ const CompanySelector = ({ companies, selectedCompany, handleChange ,clearStockT
   <div className="modal-overlay">
     <div className="confirm-modal">
       <p>All your data will get deleted. Are you sure?</p>
+
+      {/* Show download link only if table has data */}
+      {tableData && tableData.some(row =>
+  row.purchaseDate
+) && (
+  <div style={{ margin: '10px 0' }}>
+    <a href="#" onClick={(e) => { e.preventDefault(); downloadCSV(); }}>
+       Download table data (CSV)
+    </a>
+  </div>
+)}
+
       <div className="confirm-buttons">
         <button className="yes-button" onClick={confirmDelete}>Yes</button>
         <button className="no-button" onClick={cancelDelete}>No</button>
@@ -197,6 +228,7 @@ const CompanySelector = ({ companies, selectedCompany, handleChange ,clearStockT
     </div>
   </div>
 )}
+
 
     </div>
   );

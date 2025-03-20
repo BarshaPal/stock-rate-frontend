@@ -19,8 +19,10 @@ body {
 }
 .content-area
 {
-  margin-left: 240px;
-
+  margin:200px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 0px;
 }
 .converter-section
 {

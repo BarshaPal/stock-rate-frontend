@@ -14,7 +14,7 @@ const BoxList = () => {
 
   return (
     <div className="dashboard-container">
-      <Sidebar />
+   
       <div className="content-area">
           <div className="converter-section">
             {/* Pass state setters to Company */}

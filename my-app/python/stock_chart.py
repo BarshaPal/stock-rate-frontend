@@ -40,6 +40,21 @@ def get_stock():
         line=go.scatter.Line(color="green"),
         showlegend=False)
         )
+        
+        #   fig.add_trace(go.Scatter(
+        #     x=df.index,
+        #     y=df['Close'],
+        #     mode="lines",
+        #     line=go.scatter.Line(color="green"),
+        #     showlegend=False
+        # ))
+
+        # If the range is small (like 1D), adjust y-axis to avoid starting from 0
+        if df.index[-1] - df.index[0] <= pd.Timedelta(days=1):
+            y_min = df['Close'].min()
+            y_max = df['Close'].max()
+            padding = (y_max - y_min) * 0.05  # 5% padding for visual comfort
+            fig.update_yaxes(range=[y_min - padding, y_max + padding])
 
         # Update layout with title and axis labels
         fig.update_layout(

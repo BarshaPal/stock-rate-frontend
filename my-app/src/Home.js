@@ -8,7 +8,7 @@ import { Button, Container } from 'reactstrap';
 const Home = () => {
   return (
     <div>
-      <AppNavbar/>
+      {/* <AppNavbar/> */}
       <Container fluid>
         <BoxList/>
       </Container>

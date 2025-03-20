@@ -89,6 +89,7 @@ const handlePageChange = (newPage) => {
           selectedCompany={selectedCompany} 
           handleChange={handleChange} 
           companies={companies}
+          tableData={stockData}
           clearStockTable={() => {
             setStockData([]);
             setCurrentPage(1); 

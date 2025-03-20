@@ -331,16 +331,25 @@ const StockTable  = ({ selectedCompany,
   
   
   const sortByDate = (field) => {
-    const sortedRows = [...rows].sort((a, b) => {
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = startIndex + rowsPerPage;
+  
+    const currentPageRows = rows.slice(startIndex, endIndex);
+    const sortedPageRows = [...currentPageRows].sort((a, b) => {
       const dateA = new Date(a[field]);
       const dateB = new Date(b[field]);
-  
       return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
     });
   
-    setRows(sortedRows);
-    setSortOrder(sortOrder === "asc" ? "desc" : "asc"); // Toggle sorting order
-    setSortField(field); // set the field being sorted
+    // Now insert the sorted rows back into the original array
+    const newRows = [...rows];
+    for (let i = 0; i < sortedPageRows.length; i++) {
+      newRows[startIndex + i] = sortedPageRows[i];
+    }
+  
+    setRows(newRows);
+    setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    setSortField(field)
   };
 
   const removeRow = (indexToRemove) => {
@@ -350,23 +359,39 @@ const StockTable  = ({ selectedCompany,
   };
   
   const sortByField = (field) => {
-    const sortedRows = [...rows].sort((a, b) => {
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = startIndex + rowsPerPage;
+  
+    const currentPageRows = rows.slice(startIndex, endIndex);
+    const sortedPageRows = [...currentPageRows].sort((a, b) => {
       const fieldA = a[field];
       const fieldB = b[field];
   
+      // Smart comparison: works for numbers and strings
+      if (typeof fieldA === 'string' && typeof fieldB === 'string') {
+        return sortOrder === "asc"
+          ? fieldA.localeCompare(fieldB)
+          : fieldB.localeCompare(fieldA);
+      }
+  
       return sortOrder === "asc" ? fieldA - fieldB : fieldB - fieldA;
-      
     });
   
-    setRows(sortedRows);
-    setSortOrder(sortOrder === "asc" ? "desc" : "asc"); // Toggle sorting order
-    setSortField(field); // set the field being sorted
+    const newRows = [...rows];
+    for (let i = 0; i < sortedPageRows.length; i++) {
+      newRows[startIndex + i] = sortedPageRows[i];
+    }
+  
+    setRows(newRows);
+    setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    setSortField(field);
+  };
+  
+  const isAnyRowIncomplete = paginatedRows.some(row =>
+    Object.values(row).some(value => value === '' || value === null || value === undefined)
+  );
+  
 
-  };
-  const isWeekday = (date) => {
-    const day = date.getDay();
-    return day !== 0 && day !== 6; // 0 = Sunday, 6 = Saturday
-  };
   const getProfitLossClass = (profitLoss) => {
     if (profitLoss === "") return "profit-loss grey"; 
     return profitLoss < 0 ? "profit-loss loss" : "profit-loss profit";
@@ -486,14 +511,17 @@ const StockTable  = ({ selectedCompany,
                 )}
   <td>
   <DatePicker
-    className="full-width-input"
     selected={row.purchaseDate ? new Date(row.purchaseDate) : null}
     onChange={(date) => {
-      const formattedDate = date?.toISOString().split("T")[0]; 
+      const datestr = new Date(date);
+      const formattedDate = datestr.toLocaleDateString('en-CA');
       handleInputChange(index, "purchaseDate", formattedDate);
     }}
     filterDate={(date) => date.getDay() !== 0 && date.getDay() !== 6} // Disable Sundays (0) and Saturdays (6)
     dateFormat="yyyy-MM-dd"
+    showYearDropdown
+    showMonthDropdown
+    dropdownMode="select"
     className={`form-control ${row.errors.purchaseDate ? "is-invalid" : ""}`}
     placeholderText="Select date"
   />
@@ -575,7 +603,7 @@ const StockTable  = ({ selectedCompany,
                 <td>
                   {(currentPage === Math.ceil(rows.length / rowsPerPage)) &&
                   index === paginatedRows.length - 1 && (
-                    <Button className="add-more-btn p-2" onClick={addRow}>
+                    <Button className="add-more-btn p-2" onClick={addRow}  disabled={isAnyRowIncomplete}>
                       Add More
                     </Button>
                   )}
