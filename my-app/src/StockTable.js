@@ -214,14 +214,15 @@ const StockTable  = ({ selectedCompany,
   const updateSellingPriceAndRecalculate = (rows, index, newSellingPrice, setRows) => {
     const updatedRows = [...rows];
     const rate=parseFloat((updatedRows[index].sellingPrice_str/updatedRows[index].sellingPrice).toFixed(2));
-    const openPrice = updatedRows[index].sellingPrice;  // Assuming open price is stored here
+    const openPrice = updatedRows[index].originalSellingPrice;  // Assuming open price is stored here
     const closePrice = updatedRows[index].sellingPrice_close;  // Assuming close price is stored here
+    const max_pr = Math.max(openPrice, closePrice);
+    const min_pr = Math.min(openPrice, closePrice);
 
     // Validate if newSellingPrice is within range
-    if (newSellingPrice < openPrice || newSellingPrice > closePrice) {
-        throw new Error(`Selling price must be between ${openPrice} and ${closePrice}`);
-        // console.warn(`Skipping row ${index}: Selling price must be between ${openPrice} and ${closePrice}`);
-        // return; 
+    if (newSellingPrice > max_pr || newSellingPrice < min_pr) {
+         console.warn(`Skipping row ${index}: Selling price must be between ${openPrice} and ${closePrice}`);
+         return; 
     }
 
     updatedRows[index].sellingPrice_str = parseFloat((newSellingPrice*rate).toFixed(2));
