@@ -44,7 +44,7 @@ const StockTable  = ({ selectedCompany,
     yesterday.setDate(yesterday.getDate() - 1);
     return yesterday.toISOString().split("T")[0];
   };
-  const GOOGLE_SCRIPT_ID = "AKfycbwA7wTQtTxR085_S6pQYmrwPQS7rtgFjEwU-VbzC5tnX2-cruNzPxzZa494KzXJGxA";
+  const GOOGLE_SCRIPT_ID = "AKfycby76TF8y_NkNTXb8TBHcvXmIYRFxzgNYEGh_3R4i7LWgk8F2lsXbMedMOZjJrJz1EF8";
   const API_URL = `https://script.google.com/macros/s/${GOOGLE_SCRIPT_ID}/exec`;
   const API_EXCHANGE_URL=`http://localhost:8080/api/exchange`;
   
@@ -181,6 +181,7 @@ const StockTable  = ({ selectedCompany,
     updatedRows[globalIndex].originalPurchasePrice = parseFloat((stockRate.open * exchangeRateres.exchangeRate_table).toFixed(2));
     } else {
     if (updatedRows[globalIndex].purchaseRate) {
+        updatedRows[globalIndex].sellingPrice_close = parseFloat((stockRate.close * exchangeRateres.exchangeRate_table).toFixed(2));
         updatedRows[globalIndex].sellingPrice = parseFloat((stockRate.open * exchangeRateres.exchangeRate_table).toFixed(2));
         updatedRows[globalIndex].sellingPrice_str = parseFloat((stockRate.open * exchangeRateres.exchangeRate_table * exchangeRateres.exchangeRate_source).toFixed(2));//SOURCE-TARGET
         updatedRows[globalIndex].originalSellingPrice = parseFloat((stockRate.open * exchangeRateres.exchangeRate_table).toFixed(2));
@@ -213,6 +214,15 @@ const StockTable  = ({ selectedCompany,
   const updateSellingPriceAndRecalculate = (rows, index, newSellingPrice, setRows) => {
     const updatedRows = [...rows];
     const rate=parseFloat((updatedRows[index].sellingPrice_str/updatedRows[index].sellingPrice).toFixed(2));
+    const openPrice = updatedRows[index].sellingPrice;  // Assuming open price is stored here
+    const closePrice = updatedRows[index].sellingPrice_close;  // Assuming close price is stored here
+
+    // Validate if newSellingPrice is within range
+    if (newSellingPrice < openPrice || newSellingPrice > closePrice) {
+        throw new Error(`Selling price must be between ${openPrice} and ${closePrice}`);
+        // console.warn(`Skipping row ${index}: Selling price must be between ${openPrice} and ${closePrice}`);
+        // return; 
+    }
 
     updatedRows[index].sellingPrice_str = parseFloat((newSellingPrice*rate).toFixed(2));
     updatedRows[index].sellingPrice= newSellingPrice;
@@ -316,7 +326,8 @@ const StockTable  = ({ selectedCompany,
       if (response.data) {
         const ans = {
           currency: response.data[0].currency,
-          open: response.data[0].open
+          open: response.data[0].open,
+          close: response.data[0].close
         };
         
         return ans;
@@ -397,7 +408,13 @@ const StockTable  = ({ selectedCompany,
     return profitLoss < 0 ? "profit-loss loss" : "profit-loss profit";
   };
 
-
+  const handleSellingPriceTyping = (e, index) => {
+    const value = e.target.value;
+    const updatedRows = [...rows];
+    updatedRows[index].sellingPrice = value;
+    setRows(updatedRows);
+  };
+  
 
   
   return (
@@ -578,12 +595,19 @@ const StockTable  = ({ selectedCompany,
   ) : (
 
     <Input
-  type="number"
-  value={row.sellingPrice}
-  onChange={(e) =>
-    updateSellingPriceAndRecalculate(rows, index, e.target.value, setRows)
-  }
-/>
+    type="number"
+    value={row.sellingPrice}
+    onChange={(e) => handleSellingPriceTyping(e, index)} // updates raw value in state
+    onBlur={(e) =>
+      updateSellingPriceAndRecalculate(rows, index, e.target.value, setRows)
+    }
+    onKeyDown={(e) => {
+      if (e.key === "Enter") {
+        updateSellingPriceAndRecalculate(rows, index, e.target.value, setRows);
+      }
+    }}
+  />
+  
 
   
   )}
