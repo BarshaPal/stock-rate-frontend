@@ -36,6 +36,16 @@ def currency_graph(currency):
             y_min = max(min_rate - padding, min_rate * 0.95)
             y_max = min(max_rate + padding, max_rate * 1.05)
 
+        last_date = df['date'].max()
+        
+        time_ranges = {
+            "1D": last_date - pd.Timedelta(days=1),
+            "5D": last_date - pd.Timedelta(days=5),
+            "1M": last_date - pd.DateOffset(months=1),
+            "6M": last_date - pd.DateOffset(months=6),
+            "1Y": last_date - pd.DateOffset(years=1),
+            "MAX": df['date'].min()
+        }
         # Plot with Plotly
         fig = go.Figure()
         fig.add_trace(go.Scatter(
@@ -54,11 +64,12 @@ def currency_graph(currency):
             xaxis=dict(
                 rangeselector=dict(
                     buttons=list([
-                        dict(count=1, label="1D", step="day", stepmode="backward"),
                         dict(count=1, label="1M", step="month", stepmode="backward"),
                         dict(count=6, label="6M", step="month", stepmode="backward"),
                         dict(count=1, label="1Y", step="year", stepmode="backward"),
-                        dict(step="all")
+                        dict(count=5, label="5Y", step="year", stepmode="backward"),
+                        dict(count=10, label="MAX", step="year", stepmode="backward"),
+
                     ])
                 ),
                 rangeslider=dict(visible=False),

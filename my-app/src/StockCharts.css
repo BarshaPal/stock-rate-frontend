@@ -12,6 +12,63 @@
   flex-wrap: wrap; /* Ensures responsiveness */
   gap: 20px; /* Adds spacing between charts */
 }
+.profit-table {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.profit-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.header {
+  background: #f8f9fa;
+}
+
+.profit-column {
+  flex: 1;
+  text-align: center;
+}
+
+.currency {
+  font-weight: 400;
+  color: #747171;
+}
+
+.amount {
+  font-size: 24px;
+  color: #28a745;
+}
+
+.negative {
+  color: red;
+}
+
+.positive {
+  color: green;
+}
+
+.decimal {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+
+
+.positive {
+  color: #28a745;
+  background: rgba(40, 167, 69, 0.1);
+}
+
+.negative {
+  color: red;
+  background: rgba(255, 0, 0, 0.1);
+}
 
 
 .chart-card {

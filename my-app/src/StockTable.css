@@ -97,7 +97,7 @@ body, .belowNav {
 }
 
 .profit-title .label {
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 400;
   color: #989696; /* lighter like in image */
   margin: 0;
@@ -108,7 +108,7 @@ body, .belowNav {
   position: relative;
 }
 .profit-title .amount {
-  font-size: 25px;
+  font-size: 10px;
   font-weight: 400;
   margin: 0;
   color: #000;
@@ -125,12 +125,66 @@ body, .belowNav {
 
 }
 
+.profit-table {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.profit-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+}
+
+.profit-column {
+  display: flex;
+  flex-direction: column; /* Stack label and amount vertically */
+  align-items: center; /* Center align the content */
+  text-align: center;
+}
+
+.label {
+  font-size: 9px;
+  color: #888;
+  width: 140px;
+  margin-bottom: 2px;
+  word-break: keep-all
+}
+
+.amount {
+  font-size: 15px;
+  padding-left: 7px;
+  padding-right: 7px;
+  font-weight: lighter;
+  color: #28a745;
+}
+
+.negative {
+  color: red;
+}
+
+.positive {
+  color: green;
+}
+
+.decimal {
+  font-size: 14px;
+  opacity: 0.7;
+}
+
 
 .download-buttons {
   display: flex;
   gap: 20px;
 }
 
+.download-buttons button:hover {
+  background-color: white;
+  color: #566ebd;
+  font-weight: 700;
+}
 .down_butt {
   border: none;
   font-size: 12px;

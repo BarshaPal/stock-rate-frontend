@@ -47,7 +47,8 @@ const StockTable  = ({ selectedCompany,
   const GOOGLE_SCRIPT_ID = "AKfycby76TF8y_NkNTXb8TBHcvXmIYRFxzgNYEGh_3R4i7LWgk8F2lsXbMedMOZjJrJz1EF8";
   const API_URL = `https://script.google.com/macros/s/${GOOGLE_SCRIPT_ID}/exec`;
   const API_EXCHANGE_URL=`http://localhost:8080/api/exchange`;
-  
+  const API_STOCK_URL=`http://localhost:8080/api/stock/stock_perdate&company`;
+
   useEffect(() => {
     if (rows.length === 0) {
       setRows([
@@ -298,31 +299,12 @@ const StockTable  = ({ selectedCompany,
     } catch (error) {
       console.error("Error fetching Exchange rate:", error);
     }
-    // try {
-
-      
-    //   const rate_source_toINR = response.data[sourceCurrency.toLowerCase()];
-    //   let sourceTotable= rate_source_toINR ;
-    //   if(table_currency!==sourceCurrency)
-    //     {
-    //       const rate_table_toINR = response.data[table_currency.toLowerCase()];
-    //        sourceTotable= rate_table_toINR / rate_source_toINR;
-
-    //     }
-
-  
-    //   if (sourceTotable) {
-    //     return sourceTotable; 
-    //   }
-     
-    // } catch (error) {
-    //   console.error("Error fetching exchange rate:", error);
-    // }
+   
     return null;
   };
   const fetchStockRate = async (date) => {
     try {
-      const response = await axios.get(`${API_URL}?company=${selectedCompany.name.toUpperCase()}&date=${date}`);
+      const response = await axios.get(`${API_STOCK_URL}?company=${selectedCompany.name.toUpperCase()}&date=${date}`);
       
       if (response.data) {
         const ans = {
@@ -457,13 +439,60 @@ const StockTable  = ({ selectedCompany,
       <div className="belowNav">
         <div className="d-flex justify-content-between align-items-center p-3">
           <div className="profit-container">
-            <div className="profit-title">
-              <p className="label">Total P&L</p>
-              <h2 className={`amount ${totalProfit < 0 ? "negative" : "positive"}`}>
-                {Math.abs(formatAmount(totalProfit).split(".")[0] || 0)}
-                <span className="decimal">.{formatAmount(totalProfit).split(".")[1]}</span>
-              </h2>
-            </div>
+          <div className="profit-table">
+          <div className="profit-table">
+
+  {/* EUR Row */}
+  <div className="profit-row">
+    <div className="profit-column currency">EUR</div>
+    <div className="profit-column">
+      <p className="label">Total P&L</p>
+      <h2 className={`amount ${totalProfit < 0 ? "negative" : "positive"}`}>
+        {formatAmount(totalProfit).split(".")[0] || 0}
+        <span className="decimal">.{formatAmount(totalProfit).split(".")[1]}</span>
+      </h2>
+    </div>
+    <div className="profit-column">
+      <p className="label">Total Purchase Unit</p>
+<h2 className={`amount ${totalProfit < 0 ? "negative" : "positive"}`}>
+        {formatAmount(totalProfit).split(".")[0] || 0}
+        <span className="decimal">.{formatAmount(totalProfit).split(".")[1]}</span>
+      </h2>    </div>
+    <div className="profit-column">
+      <p className="label">Total Selling Unit</p>
+      <h2 className={`amount ${totalProfit < 0 ? "negative" : "positive"}`}>
+        {formatAmount(totalProfit).split(".")[0] || 0}
+        <span className="decimal">.{formatAmount(totalProfit).split(".")[1]}</span>
+      </h2>    </div>
+  </div>
+
+  {/* INR Row */}
+  <div className="profit-row">
+    <div className="profit-column currency">INR</div>
+    <div className="profit-column">
+      <p className="label">Total P&L</p>
+      <h2 className={`amount ${totalProfit < 0 ? "negative" : "positive"}`}>
+        {formatAmount(totalProfit).split(".")[0] || 0}
+        <span className="decimal">.{formatAmount(totalProfit).split(".")[1]}</span>
+      </h2>
+    </div>
+    <div className="profit-column">
+      <p className="label">Total Purchase Unit</p>
+      <h2 className={`amount ${totalProfit < 0 ? "negative" : "positive"}`}>
+        {formatAmount(totalProfit).split(".")[0] || 0}
+        <span className="decimal">.{formatAmount(totalProfit).split(".")[1]}</span>
+      </h2>    </div>
+    <div className="profit-column">
+      <p className="label">Total Selling Unit</p>
+<h2 className={`amount ${totalProfit < 0 ? "negative" : "positive"}`}>
+        {formatAmount(totalProfit).split(".")[0] || 0}
+        <span className="decimal">.{formatAmount(totalProfit).split(".")[1]}</span>
+      </h2>    </div>
+  </div>
+</div>
+
+</div>
+
   
             <div className="download-buttons">
               <button className="down_butt">Download CSV</button>
