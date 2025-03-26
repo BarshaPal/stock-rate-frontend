@@ -38,7 +38,6 @@ const ApexChartComponent = ({ company }) => {
           b: 20,
       },
       title: {
-          text: "Stock Rate Over Time for "+company,
           pad: { t: 40 }, // Increase top padding of title
       },
         paper_bgcolor: "white", // Ensures white background

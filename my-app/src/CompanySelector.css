@@ -94,6 +94,7 @@
     align-items: center;
   }
   
+  
   .dropdown {
     width: 100%;
     padding-right: 80px; /* Leave space for the button */
@@ -101,7 +102,16 @@
     padding-left: 12px;
     box-sizing: border-box;
     border: 1px solid rgb(218, 216, 216);
-  }
+    outline: none; /* Remove focus outline */
+    cursor: default; /* Prevent text cursor */
+}
+
+/* Prevent border change on hover */
+.dropdown:hover, 
+.dropdown:focus {
+    border: 1px solid rgb(218, 216, 216); /* Keep border same */
+    box-shadow: none; /* Remove any extra shadow */
+}
 
   .search-button,
   .remove-button {
@@ -214,7 +224,9 @@
     border: 1px solid #ccc;
     border-radius: 4px;
   }
-  
+  .search-input:hover{
+    border: none;
+  }
   .sort-label {
     font-size: 14px;
     display: flex;

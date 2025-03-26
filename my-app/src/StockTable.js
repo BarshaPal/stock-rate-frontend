@@ -7,6 +7,8 @@ import "./StockTable.css";
 import StockCharts from "./StockCharts";
 import ApexChartComponent from "./ApexChartComponent";
 import "react-datepicker/dist/react-datepicker.css";
+import { FaCalendarAlt } from "react-icons/fa"; // Import calendar icon
+
 
 
 
@@ -26,13 +28,26 @@ const StockTable  = ({ selectedCompany,
     const [activeTab, setActiveTab] = useState("table");
     const [sortOrder, setSortOrder] = useState("asc");
     const [totalProfit, setTotalProfit] = useState(null);
+    const [totalPurchasePrice, setTotalPurchasePrice] = useState(null);
+    const [totalSellingPrice, setTotalSellingPrice] = useState(null);
+    const [totalPurchasePriceTarget, setTotalPurchasePriceTarget] = useState(null);
+    const [totalSellingPriceTarget, setTotalSellingPriceTarget] = useState(null);
+    const [newSellingPrice, setnewSellingPrice] = useState(null);
     const [sortField, setSortField] = useState("");
   
   const recalculateProfit = (rowsData) => {
     const profitSum = rowsData.reduce((acc, row) => acc + (Number(row.profitLoss) || 0), 0);
     setTotalProfit(profitSum);
+    const purchaseSum = rowsData.reduce((acc, row) => acc + (Number(row.purchaseRate) || 0), 0);
+    setTotalPurchasePrice(purchaseSum);
+    const sellingSum = rowsData.reduce((acc, row) => acc + (Number(row.sellingPrice) || 0), 0);
+    setTotalSellingPrice(sellingSum);
+    const purchaseSumTaret = rowsData.reduce((acc, row) => acc + (Number(row.purchaseRate_str) || 0), 0);
+    setTotalPurchasePriceTarget(purchaseSumTaret);
+    const sellingSumTarget = rowsData.reduce((acc, row) => acc + (Number(row.sellingPrice_str) || 0), 0);
+    setTotalSellingPriceTarget(sellingSumTarget);
   };
-  
+ 
 
   const formatAmount = (amount) => {
     return amount ? amount.toFixed(2) : "0.00";
@@ -57,7 +72,7 @@ const StockTable  = ({ selectedCompany,
           purchaseRate: "",
           sellingDate: getCurrentDate(),
           sellingQuantity: "1",
-          sellingPrice: "",
+          sellingPrice: "0",
           profitLoss: "",
           loading_pr:false,
           loading_sr:false,
@@ -84,7 +99,6 @@ const StockTable  = ({ selectedCompany,
 
     if (!lastRow.purchaseDate || !lastRow.sellingDate || !lastRow.sellingQuantity) {
       const updatedRows = [...rows];
-      updatedRows[rows.length - 1].errors = validateRow(lastRow);
       setRows(updatedRows);
       return;
     }
@@ -95,7 +109,7 @@ const StockTable  = ({ selectedCompany,
         purchaseRate: "",
         sellingDate: getCurrentDate(),
         sellingQuantity: "1",
-        sellingPrice: "",
+        sellingPrice: "0",
         profitLoss: "",
         errors: {},
     };
@@ -106,23 +120,27 @@ const StockTable  = ({ selectedCompany,
       setCurrentPage(newTotalPages); 
       setRows(updatedRows);
       recalculateProfit(updatedRows);
-
+  
   };
 
-  const validateRow = (row) => {
+  const validateRow = (row,newSellingPrice) => {
     const errors = {};
 
-    if (!row.purchaseDate) errors.purchaseDate = "Purchase date is required.";
-    if (!row.sellingDate) errors.sellingDate = "Selling date is required.";
+    // if (!row.purchaseRate) errors.purchaseRate = "Purchase price is required.";
     if (!row.sellingQuantity || row.sellingQuantity <= 0) errors.sellingQuantity = "Enter a valid quantity.";
+    if (row.sellingPrice && newSellingPrice!=""){
+    const openPrice = row.originalSellingPrice;  // Assuming open price is stored here
+    const closePrice = row.sellingPrice_close;  // Assuming close price is stored here
+    const max_pr = Math.max(openPrice, closePrice);
+    const min_pr = Math.min(openPrice, closePrice);
 
-    if (row.purchaseDate && row.sellingDate) {
-      const purchaseDate = new Date(row.purchaseDate);
-      const sellingDate = new Date(row.sellingDate);
-      if (sellingDate < purchaseDate) {
-        errors.sellingDate = "Selling date cannot be before purchase date.";
-      }
+    // Validate if newSellingPrice is within range
+    if (newSellingPrice > max_pr || newSellingPrice < min_pr) {
+
+      errors.sellingPrice = `Selling price must be between ${openPrice} and ${closePrice}`;
+      console.warn(`Skipping row ${row}: Selling price must be between ${openPrice} and ${closePrice}`);
     }
+  }
 
     return errors;
   };
@@ -143,19 +161,29 @@ const StockTable  = ({ selectedCompany,
       return;
   }
 
-    updatedRows[globalIndex][field] = value;
-    
-
-    // Validate input
-    const errors = validateRow(updatedRows[globalIndex]);
+  const errors = validateRow(updatedRows[globalIndex]);
     updatedRows[globalIndex].errors = errors;
-
-    if (errors.sellingDate) {
+     if (field === "sellingDate" && !updatedRows[globalIndex].purchaseRate) {
+        updatedRows[globalIndex].errors.purchaseRate = "Please enter a purchase rate first.";
+        setRows([...updatedRows]);
+        return; // Stop execution
+    
+    }
+    else{
+      if (errors.sellingQuantity|| errors.sellingPrice) {
         updatedRows[globalIndex].loading_pr = false; // Hide loading if validation fails
         updatedRows[globalIndex].loading_sr=false;
         setRows([...updatedRows]);
         return;
     }
+    }
+    
+   
+    updatedRows[globalIndex][field] = value;
+    
+
+    // Validate input
+  
     field==="purchaseDate"? updatedRows[globalIndex].loading_pr = true:updatedRows[globalIndex].loading_sr = true
 
     setRows([...updatedRows]); // Update state to show the spinner
@@ -186,10 +214,8 @@ const StockTable  = ({ selectedCompany,
         updatedRows[globalIndex].sellingPrice = parseFloat((stockRate.open * exchangeRateres.exchangeRate_table).toFixed(2));
         updatedRows[globalIndex].sellingPrice_str = parseFloat((stockRate.open * exchangeRateres.exchangeRate_table * exchangeRateres.exchangeRate_source).toFixed(2));//SOURCE-TARGET
         updatedRows[globalIndex].originalSellingPrice = parseFloat((stockRate.open * exchangeRateres.exchangeRate_table).toFixed(2));
-      }
+      }  }
 
-
-            }
         }
     }
 
@@ -214,47 +240,69 @@ const StockTable  = ({ selectedCompany,
 
   const updateSellingPriceAndRecalculate = (rows, index, newSellingPrice, setRows) => {
     const updatedRows = [...rows];
-    const rate=parseFloat((updatedRows[index].sellingPrice_str/updatedRows[index].sellingPrice).toFixed(2));
-    const openPrice = updatedRows[index].originalSellingPrice;  // Assuming open price is stored here
-    const closePrice = updatedRows[index].sellingPrice_close;  // Assuming close price is stored here
-    const max_pr = Math.max(openPrice, closePrice);
-    const min_pr = Math.min(openPrice, closePrice);
+    const globalIndex = (currentPage - 1) * rowsPerPage + index;
 
-    // Validate if newSellingPrice is within range
-    if (newSellingPrice > max_pr || newSellingPrice < min_pr) {
-         console.warn(`Skipping row ${index}: Selling price must be between ${openPrice} and ${closePrice}`);
-         return; 
-    }
-
-    updatedRows[index].sellingPrice_str = parseFloat((newSellingPrice*rate).toFixed(2));
-    updatedRows[index].sellingPrice= newSellingPrice;
-
-    const quantity = parseFloat(updatedRows[index].sellingQuantity) || 0;
-    const selling = parseFloat((newSellingPrice) *rate)|| 0;
-    const purchase = parseFloat(updatedRows[index].purchaseRate_str) || 0;
+    const rate=parseFloat((updatedRows[globalIndex].sellingPrice_str/updatedRows[globalIndex].sellingPrice).toFixed(2));
+    const errors = validateRow(updatedRows[globalIndex],newSellingPrice);
+    updatedRows[globalIndex].errors = errors;  
   
-    updatedRows[index].profitLoss = calculateProfitLoss(
+    if (errors.sellingPrice) { 
+      setRows(updatedRows);
+      return;
+    }
+  
+
+    updatedRows[globalIndex].sellingPrice_str = parseFloat((newSellingPrice*rate).toFixed(2));
+    updatedRows[globalIndex].sellingPrice= newSellingPrice;
+
+    const quantity = parseFloat(updatedRows[globalIndex].sellingQuantity) || 0;
+    const selling = parseFloat((newSellingPrice) *rate)|| 0;
+    const purchase = parseFloat(updatedRows[globalIndex].purchaseRate_str) || 0;
+  
+    updatedRows[globalIndex].profitLoss = calculateProfitLoss(
       selling , quantity,
       purchase 
     );
   
     setRows(updatedRows);
     recalculateProfit(updatedRows);
-
+ 
   };
   
+  const downloadCSV = () => {
+    if (!rows || rows.length === 0) return;
+
+    const requiredFields = ["purchaseDate", "purchaseRate", "sellingDate", "sellingQuantity", "sellingPrice", "profitLoss"];
+
+    const csvRows = [
+        requiredFields.join(','), 
+        ...rows.map(row =>
+            requiredFields.map(field => `"${row[field] ?? ''}"`).join(',')
+        )
+    ];
+
+    const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = (selectedCompany?.name || "selectedCompany") + ".csv"; 
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
 
 
   const handleQuantityChange = (index, value) => {
+    const globalIndex = (currentPage - 1) * rowsPerPage + index;
+
     const updatedRows = [...rows];
-    updatedRows[index].sellingQuantity = value;
+    updatedRows[globalIndex].sellingQuantity = value;
     
     // Validate input
-  const errors = validateRow(updatedRows[index]);
-  updatedRows[index].errors = errors;  
+  const errors = validateRow(updatedRows[globalIndex],"");
+  updatedRows[globalIndex].errors = errors;  
 
-  if (errors.sellingQuantity) { // Only return if there is an error for sellingQuantity
-    setRows(updatedRows);
+  if (errors.sellingQuantity) { 
     return;
   }
 
@@ -269,10 +317,10 @@ const StockTable  = ({ selectedCompany,
     // updatedRows[index].purchaseRate = updatedRows[index].originalPurchasePrice * value;
   
 
-    if (updatedRows[index].purchaseRate && updatedRows[index].sellingPrice) {
-      updatedRows[index].profitLoss = calculateProfitLoss(
-        updatedRows[index].sellingPrice_str,value,
-        updatedRows[index].purchaseRate_str
+    if (updatedRows[globalIndex].purchaseRate && updatedRows[globalIndex].sellingPrice) {
+      updatedRows[globalIndex].profitLoss = calculateProfitLoss(
+        updatedRows[globalIndex].sellingPrice_str,value,
+        updatedRows[globalIndex].purchaseRate_str
         
       );
     }
@@ -351,6 +399,13 @@ const StockTable  = ({ selectedCompany,
     setRows(updatedRows);
     recalculateProfit(updatedRows);
   };
+
+  const CustomDatePickerInput = ({ value, onClick }) => (
+    <div className="datepicker-wrapper" onClick={onClick}>
+      <FaCalendarAlt className="calendar-icon" />
+      <input type="text" value={value} readOnly className="form-control" placeholder="Select date" />     
+    </div>
+  );
   
   const sortByField = (field) => {
     const startIndex = (currentPage - 1) * rowsPerPage;
@@ -393,8 +448,9 @@ const StockTable  = ({ selectedCompany,
 
   const handleSellingPriceTyping = (e, index) => {
     const value = e.target.value;
+    const globalIndex = (currentPage - 1) * rowsPerPage + index;
     const updatedRows = [...rows];
-    updatedRows[index].sellingPrice = value;
+    updatedRows[globalIndex].sellingPrice = value;
     setRows(updatedRows);
   };
   
@@ -435,69 +491,85 @@ const StockTable  = ({ selectedCompany,
           <StockCharts stockData={rows} />
         </div>
       )}
-  
-      <div className="belowNav">
-        <div className="d-flex justify-content-between align-items-center p-3">
-          <div className="profit-container">
-          <div className="profit-table">
-          <div className="profit-table">
 
-  {/* EUR Row */}
-  <div className="profit-row">
-    <div className="profit-column currency">EUR</div>
-    <div className="profit-column">
-      <p className="label">Total P&L</p>
-      <h2 className={`amount ${totalProfit < 0 ? "negative" : "positive"}`}>
-        {formatAmount(totalProfit).split(".")[0] || 0}
-        <span className="decimal">.{formatAmount(totalProfit).split(".")[1]}</span>
-      </h2>
-    </div>
-    <div className="profit-column">
-      <p className="label">Total Purchase Unit</p>
-<h2 className={`amount ${totalProfit < 0 ? "negative" : "positive"}`}>
-        {formatAmount(totalProfit).split(".")[0] || 0}
-        <span className="decimal">.{formatAmount(totalProfit).split(".")[1]}</span>
-      </h2>    </div>
-    <div className="profit-column">
-      <p className="label">Total Selling Unit</p>
-      <h2 className={`amount ${totalProfit < 0 ? "negative" : "positive"}`}>
-        {formatAmount(totalProfit).split(".")[0] || 0}
-        <span className="decimal">.{formatAmount(totalProfit).split(".")[1]}</span>
-      </h2>    </div>
+
+<div className="profit-container">
+  {/* Header Row */}
+  <div className="profit-header">
+    <div className="profit-column currency"></div>
+    <div className="profit-column">Total Purchase Price</div>
+    <div className="profit-column">Total Selling Price</div>
+    <div className="profit-column">Profit/Loss</div>
   </div>
 
   {/* INR Row */}
   <div className="profit-row">
     <div className="profit-column currency">INR</div>
     <div className="profit-column">
-      <p className="label">Total P&L</p>
-      <h2 className={`amount ${totalProfit < 0 ? "negative" : "positive"}`}>
-        {formatAmount(totalProfit).split(".")[0] || 0}
-        <span className="decimal">.{formatAmount(totalProfit).split(".")[1]}</span>
+      <h2 className="amount black">
+        {formatAmount(totalPurchasePriceTarget).split(".")[0] || 0}
+        <span className="decimal">.{formatAmount(totalPurchasePriceTarget).split(".")[1]}</span>
       </h2>
     </div>
     <div className="profit-column">
-      <p className="label">Total Purchase Unit</p>
-      <h2 className={`amount ${totalProfit < 0 ? "negative" : "positive"}`}>
-        {formatAmount(totalProfit).split(".")[0] || 0}
-        <span className="decimal">.{formatAmount(totalProfit).split(".")[1]}</span>
-      </h2>    </div>
+      <h2 className="amount black">
+        {formatAmount(totalSellingPriceTarget).split(".")[0] || 0}
+        <span className="decimal">.{formatAmount(totalSellingPriceTarget).split(".")[1]}</span>
+      </h2>
+    </div>
     <div className="profit-column">
-      <p className="label">Total Selling Unit</p>
-<h2 className={`amount ${totalProfit < 0 ? "negative" : "positive"}`}>
-        {formatAmount(totalProfit).split(".")[0] || 0}
-        <span className="decimal">.{formatAmount(totalProfit).split(".")[1]}</span>
-      </h2>    </div>
+    <h2 className={`amount ${totalProfit < 0 ? "negative" : "positive"}`}>
+        {formatAmount(Math.abs(totalProfit)).split(".")[0] || 0}
+        <span className="decimal">.{formatAmount(Math.abs(totalProfit)).split(".")[1]}</span>
+      </h2>
+    </div>
+  </div>
+
+  {/* EUR Row */}
+  <div className="profit-row">
+    <div className="profit-column currency">EUR</div>
+    <div className="profit-column">
+      <h2 className="amount black">
+        {formatAmount(totalPurchasePrice).split(".")[0] || 0}
+        <span className="decimal">.{formatAmount(totalPurchasePrice).split(".")[1]}</span>
+      </h2>
+    </div>
+    <div className="profit-column">
+      <h2 className="amount black">
+        {formatAmount(totalSellingPrice).split(".")[0] || 0}
+        <span className="decimal">.{formatAmount(totalSellingPrice).split(".")[1]}</span>
+      </h2>
+    </div>
+    <div className="profit-column">
+      <h2 className={`amount ${(totalSellingPrice-totalPurchasePrice) < 0 ? "negative" : "positive"}`}>
+        {formatAmount(Math.abs(totalSellingPrice-totalPurchasePrice)).split(".")[0] || 0}
+        <span className="decimal">.{formatAmount(Math.abs(totalSellingPrice-totalPurchasePrice)).split(".")[1]}</span>
+      </h2>
+    </div>
   </div>
 </div>
+
+<div className="download-buttons">
+              <button className="down_butt"  onClick={downloadCSV}>Download CSV</button>
+              <button className="down_butt">Upload Data</button>
+            </div>
+  
+      <div className="belowNav">
+        <div className="d-flex justify-content-between align-items-center p-3">
+          <div className="profit-container">
+          <div className="profit-table">
+     
+
+  {/* Profit Section */}
+
+
+  
+
 
 </div>
 
   
-            <div className="download-buttons">
-              <button className="down_butt">Download CSV</button>
-              <button className="down_butt">Upload PDF</button>
-            </div>
+            
           </div>
         </div>
   
@@ -521,8 +593,9 @@ const StockTable  = ({ selectedCompany,
                 className={sortField === "purchaseRate" ? "active-header" : ""}
               >
                 <div className="header-cell">
-                  <span>Purchase Price ({sourceCurrency})</span>
-                  {sortField === "purchaseRate" && (
+                <span>Purchase Price</span>
+                <span className="currency-label">({sourceCurrency})</span>
+                                  {sortField === "purchaseRate" && (
                     <span className="sort-icon">{sortOrder === "asc" ? "▲" : "▼"}</span>
                   )}
                 </div>
@@ -558,23 +631,21 @@ const StockTable  = ({ selectedCompany,
                 )}
   <td>
   <DatePicker
-    selected={row.purchaseDate ? new Date(row.purchaseDate) : null}
-    onChange={(date) => {
-      const datestr = new Date(date);
-      const formattedDate = datestr.toLocaleDateString('en-CA');
-      handleInputChange(index, "purchaseDate", formattedDate);
-    }}
-    filterDate={(date) => date.getDay() !== 0 && date.getDay() !== 6} // Disable Sundays (0) and Saturdays (6)
-    dateFormat="yyyy-MM-dd"
-    showYearDropdown
-    showMonthDropdown
-    dropdownMode="select"
-    className={`form-control ${row.errors.purchaseDate ? "is-invalid" : ""}`}
-    placeholderText="Select date"
-  />
- {row.errors.purchaseDate && (
-                    <FormFeedback>{row.errors.purchaseDate}</FormFeedback>
-                  )}
+  selected={row.purchaseDate ? new Date(row.purchaseDate) : null}
+  onChange={(date) => {
+    const datestr = new Date(date);
+    const formattedDate = datestr.toLocaleDateString("en-CA");
+    handleInputChange(index, "purchaseDate", formattedDate);
+  }}
+  filterDate={(date) => date.getDay() !== 0 && date.getDay() !== 6} // Disable Sundays (0) and Saturdays (6)
+  dateFormat="yyyy-MM-dd"
+  showYearDropdown
+  showMonthDropdown
+  dropdownMode="select"
+  customInput={<CustomDatePickerInput />} // Custom input field with icon
+
+/>
+
 </td>
               
   
@@ -582,8 +653,14 @@ const StockTable  = ({ selectedCompany,
                   {row.loading_pr ? (
                     <span className="spinner-border spinner-border-sm text-primary"></span>
                   ) : (
-                    <Input type="number" value={row.purchaseRate} placeholder="Auto-filled" disabled />
+                    <Input type="number" value={row.purchaseRate} placeholder="Auto-filled" disabled
+                    invalid={!!row.errors.purchaseRate}
+                    />
                   )}
+                   {row.errors.purchaseRate && (
+                    <FormFeedback className="feedback">{row.errors.purchaseRate}</FormFeedback>
+                  )}
+                  
                 </td>
   
                 <td>
@@ -597,9 +674,13 @@ const StockTable  = ({ selectedCompany,
     minDate={row.purchaseDate ? new Date(row.purchaseDate) : null}
     filterDate={(date) => date.getDay() !== 0 && date.getDay() !== 6} // Disable Sundays (0) and Saturdays (6)
     dateFormat="yyyy-MM-dd"
-    className={`form-control ${row.errors.sellingDate ? "is-invalid" : ""}`}
-    placeholderText="Select date"
-  />
+    showYearDropdown
+    showMonthDropdown
+    dropdownMode="select"
+
+    customInput={<CustomDatePickerInput />} // Custom input field with icon
+    // placeholderText="Select date"
+      />
   {row.errors.sellingDate && (
     <div className="invalid-feedback">{row.errors.sellingDate}</div>
   )}
@@ -615,7 +696,7 @@ const StockTable  = ({ selectedCompany,
                     invalid={!!row.errors.sellingQuantity}
                   />
                   {row.errors.sellingQuantity && (
-                    <FormFeedback>{row.errors.sellingQuantity}</FormFeedback>
+                    <FormFeedback className="feedback">{row.errors.sellingQuantity}</FormFeedback>
                   )}
                 </td>
   
@@ -628,20 +709,22 @@ const StockTable  = ({ selectedCompany,
     type="number"
     value={row.sellingPrice}
     onChange={(e) => handleSellingPriceTyping(e, index)} // updates raw value in state
+    invalid={!!row.errors.sellingPrice}
     onBlur={(e) =>
       updateSellingPriceAndRecalculate(rows, index, e.target.value, setRows)
-    }
+    }    
     onKeyDown={(e) => {
       if (e.key === "Enter") {
         updateSellingPriceAndRecalculate(rows, index, e.target.value, setRows);
       }
     }}
-  />
-  
-
-  
+  />  
   )}
+  {row.errors.sellingPrice && (
+                    <FormFeedback className="feedback">{row.errors.sellingPrice}</FormFeedback>
+                  )}
 </td>
+
 
   
                 <td>

@@ -57,8 +57,8 @@ def currency_graph(currency):
         ))
 
         fig.update_layout(
-            title=f"{currency.upper()} Exchange Rate Over Time",
-            xaxis_title="Date",
+            title=f"Exchange Rate Over Time ({currency.upper()})",
+            xaxis_title="Year",
             yaxis_title="Rate",
             plot_bgcolor="white",
             xaxis=dict(
@@ -80,7 +80,7 @@ def currency_graph(currency):
                 range=[y_min, y_max]
             ),
         )
-
+        # fig.show()
         # Convert Plotly figure to JSON
         graph_json = pio.to_json(fig)
         return jsonify({"graph": graph_json})

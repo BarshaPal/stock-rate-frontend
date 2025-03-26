@@ -82,22 +82,26 @@ const CompanySelector = ({ companies, selectedCompany, handleChange ,clearStockT
   };
   const downloadCSV = () => {
     if (!tableData || tableData.length === 0) return;
-  
-    const headers = Object.keys(tableData[0]);
+
+    const requiredFields = ["purchaseDate", "purchaseRate", "sellingDate", "sellingQuantity", "sellingPrice", "profitLoss"];
+
     const csvRows = [
-      headers.join(','),
-      ...tableData.map(row =>
-        headers.map(field => `"${(row[field] ?? '').toString().replace(/"/g, '""')}"`).join(',')
-      )
+        requiredFields.join(','), 
+        ...tableData.map(row =>
+            requiredFields.map(field => `"${row[field] ?? ''}"`).join(',')
+        )
     ];
+
     const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = 'stock_data.csv';
+    link.download = (selectedCompany?.name || "selectedCompany") + ".csv"; 
+
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  };
+};
+  
   
 
   useEffect(() => {
@@ -126,7 +130,6 @@ const CompanySelector = ({ companies, selectedCompany, handleChange ,clearStockT
     className="dropdown"
     value={selectedCompanyName}
     readOnly
-    onClick={() => setShowModal(true)}
   />
   {selectedCompanyName ? (
     <button className="remove-button" onClick={handleRemoveCompany}>

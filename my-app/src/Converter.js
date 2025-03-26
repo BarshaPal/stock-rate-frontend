@@ -103,14 +103,13 @@ useEffect(() => {
   return (
     <div className="converter-container">
 
-      <p className="conversion-text">1 {sourceCurrency} equals</p>
-      <h3 className="conversion-rate">{conversionRate} {targetCurrency}</h3>
+     
 
       <div className="currency-box">
-        <button className="currency-button">{sourceCurrency}</button>
-        <span className="swap-btn" onClick={handleSwap}>→</span>
+        <button className="currency-button">1  {sourceCurrency}</button>
+        <span className="swap-btn" >→</span>
 
-        <button className="currency-button">{targetCurrency}</button>
+        <button className="currency-button"> {conversionRate}  {targetCurrency}</button>
       </div>
 
       {/* <input 

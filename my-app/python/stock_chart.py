@@ -58,7 +58,7 @@ def get_stock():
 
         # Update layout with title and axis labels
         fig.update_layout(
-        title=f"Stock Rate Over Time for {stock.upper()}",
+        # title=f"Stock Rate Over Time for {stock.upper()}",
         yaxis_title='Stock Price',
         xaxis_title='Year',
         plot_bgcolor="white",  # Background color

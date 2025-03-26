@@ -38,7 +38,7 @@ const ExchangeChartContainer = ({ currency }) => {
             b: 20  
         },
         title: {
-          text: "Stock Rate Over Time for "+currency,
+          // text: "Stock Rate Over Time for "+currency,
           pad: { t: 40 }, // Increase top padding of title
       },
         paper_bgcolor: "white", // Ensures white background

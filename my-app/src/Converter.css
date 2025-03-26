@@ -58,7 +58,6 @@
   color: #333;
   font-weight: 500;
   border-radius: 5px;
-  cursor: pointer;
 }
 
 .currency-button:hover {
@@ -69,21 +68,12 @@
   background: transparent;
   border: none;
   font-size: 24px;
-  cursor: pointer;
   transition: color 0.3s ease, transform 0.2s ease;
   color: #ed3863;
 }
 
-.swap-btn:hover {
-  color: #007bff; /* Change color on hover */
-  transform: scale(1.1); /* Slightly enlarge button */
-}
 
-.swap-btn:active {
-  color: #ff5733; /* Change color on click */
-  transform: rotate(180deg); /* Rotate on click */
-  transition: transform 0.3s ease;
-}
+
 
 
 .date-picker {

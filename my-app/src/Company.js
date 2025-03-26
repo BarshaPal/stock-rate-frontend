@@ -10,7 +10,7 @@ import ExchangeChartContainer from "./ExchangeChartContainer";
 const companies = [
   { name: "Apple", symbol: "AAPL", currency: "USD", country: "USA" },
   { name: "Tesla", symbol: "TSLA", currency: "USD", country: "USA" },
-  { name: "SAP", symbol: "SAP.DE", currency: "EUR", country: "Germany" },
+  { name: "SAP", symbol: "SAP", currency: "EUR", country: "Germany" },
   { name: "Amazon", symbol: "AMZN", currency: "USD", country: "USA" },
   { name: "Google", symbol: "GOOGL", currency: "USD", country: "USA" },
   { name: "Reliance Industries", symbol: "RELIANCE.NS", currency: "INR", country: "India" },
@@ -112,10 +112,12 @@ const handlePageChange = (newPage) => {
               </div>
     
               <div className="section graph">
-              <div className="stockgraph">
+    <div className="stockgraph">
+      <span className="graph_label">Stock Rate Graph of {selectedCompany.symbol} </span>
     <ApexChartComponent company={selectedCompany.symbol} />
   </div>
   <div className="exchnge-graph">
+  <span className="graph_label">Exchange Rate for {sourceCurrency} </span>
     <ExchangeChartContainer currency={sourceCurrency} />
   </div>
 
