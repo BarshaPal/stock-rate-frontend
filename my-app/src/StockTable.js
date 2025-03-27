@@ -137,8 +137,8 @@ const StockTable  = ({ selectedCompany,
     // Validate if newSellingPrice is within range
     if (newSellingPrice > max_pr || newSellingPrice < min_pr) {
 
-      errors.sellingPrice = `Selling price must be between ${openPrice} and ${closePrice}`;
-      console.warn(`Skipping row ${row}: Selling price must be between ${openPrice} and ${closePrice}`);
+      errors.sellingPrice = `${closePrice}>price>${openPrice}`;
+      console.warn(`${closePrice}>price>${openPrice}`);
     }
   }
 
@@ -164,7 +164,7 @@ const StockTable  = ({ selectedCompany,
   const errors = validateRow(updatedRows[globalIndex]);
     updatedRows[globalIndex].errors = errors;
      if (field === "sellingDate" && !updatedRows[globalIndex].purchaseRate) {
-        updatedRows[globalIndex].errors.purchaseRate = "Please enter a purchase rate first.";
+        updatedRows[globalIndex].errors.purchaseRate = "Enter purchase rate";
         setRows([...updatedRows]);
         return; // Stop execution
     

@@ -27,14 +27,15 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
   return (
     <div className="pagination-container">
       <div className="pagination-box">
-        <button
-          variant="outline"
-          onClick={() => onPageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-          className="pagination-btn"
-        >
-          ⬅ Previous
-        </button>
+        {/* Hide 'Previous' on first page */}
+        {currentPage > 1 && (
+          <button
+            onClick={() => onPageChange(currentPage - 1)}
+            className="pagination-btn"
+          >
+            ⬅ Previous
+          </button>
+        )}
 
         <span className="pagination-text">
           <input
@@ -47,14 +48,15 @@ function Pagination({ currentPage, totalPages, onPageChange }) {
           of {totalPages}
         </span>
 
-        <button
-          variant="outline"
-          onClick={() => onPageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
-          className="pagination-btn"
-        >
-          Next ➡
-        </button>
+        {/* Hide 'Next' on last page */}
+        {currentPage < totalPages && (
+          <button
+            onClick={() => onPageChange(currentPage + 1)}
+            className="pagination-btn"
+          >
+            Next ➡
+          </button>
+        )}
       </div>
     </div>
   );

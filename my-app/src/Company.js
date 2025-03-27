@@ -57,7 +57,7 @@ const Company = ({
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [stockData, setStockData] = useState([]);
 const [currentPage, setCurrentPage] = useState(1);
-const rowsPerPage = 2;
+const rowsPerPage = 5;
 
 const totalPages = Math.ceil(stockData.length / rowsPerPage);
 
